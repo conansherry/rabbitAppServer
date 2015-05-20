@@ -7,89 +7,105 @@
  */
 
 var redis  = require("redis");
-var util   = require("util");
-var events = require("events");
 var async  = require("async");
+var log4js = require("log4js")
+var logger = log4js.getLogger("redisClient.js");
 
 //redis.debug_mode = true;
 
+/*
+ * redis+node work in single thread. use global redis handler;
+ */
+var redisClient = redis.createClient();
 function RabbitRedisClient() {
-    this.client = redis.createClient({detect_buffers:true});
+    this.client = redisClient;
 }
 
 
 /**
- * @brief function set & hmset
+ * @brief function set & rpush & hmset. set and hmset can store the binary data, but rpush can't support this feature.
  *
  * @param key
  * @param value
- * @param callback ptr to function, err is error info, reply is value of the key.
+ * @param callback(err, res)
  *
  * @return undefined
  */
 RabbitRedisClient.prototype.set = function(key, value, callback) {
+    var debugPrefix = "[redis set]";
+    var self = this;
     var callbackType = typeof callback;
-    if(typeof value === "string" || value instanceof Buffer) {
+    if(value instanceof Buffer) {
+        logger.debug(debugPrefix+"use set");
         if(callbackType === undefined || callbackType === null)
-            this.client.set(key, value);
+            self.client.set(key, value);
         else
-            this.client.set(key, value, callback);
+            self.client.set(key, value, callback);
     }
     else {
-        if(callback === undefined || callback === null)
-            this.client.hmset(key, value);
-        else
-            this.client.hmset(key, value, callback);
+        logger.debug(debugPrefix+"use json");
+        self.client.set(key, JSON.stringify(value), callback);
     }
-}
+};
 
 /**
- * @brief function example: get("key", function(err, reply){
+ * @brief function example: get("key", function(err, res){
  *     //do sth. in here.
- *     //reply is the value.
+ *     //res is the value.
  * })
  *
  * @param key
- * @param callback ptr to function, err is error info, reply is value of the key.
+ * @param callback(err, res)
  *
  * @return undefined
  */
 RabbitRedisClient.prototype.get = function(key, callback) {
+    var debugPrefix = "[redis get]";
+    logger.debug(debugPrefix+"in redisGet. key = "+key);
     var self = this;
     async.waterfall([
-        function(innerCallback) {
-            self.client.type(key, function(err, reply) {
-                innerCallback(err, reply);
+        function(cb) {
+            logger.debug(debugPrefix+"in getType");
+            self.client.type(key, function(err, res) {
+                if(err)
+                    logger.error(debugPrefix+err);
+                cb(err, res);
             });
         },
-        function(reply, innerCallback) {
-            if(reply === "hash") {
-                self.client.hgetall(key, function(err, reply) {
-                    innerCallback(err, reply);
+        function(res, cb) {
+            logger.debug(debugPrefix+"type = " + res);
+            if(res === "string") {
+                logger.debug(debugPrefix+"get "+res);
+                self.client.get(key, function(err, res) {
+                    if(err)
+                        logger.error(debugPrefix+err);
+                    cb(err, JSON.parse(res));
                 });
             }
-            else if(reply === "string") {
-                self.client.get(key, function(err, reply) {
-                    innerCallback(err, reply);
-                });
+            else if(res == "none") {
+                cb(new Error("key "+key+" can't be found"));
+            }
+            else {
+                self.client.del(key);
+                cb(new Error("Unknown type"));
             }
         }
-    ],  function(err, reply) {
-        callback(err, reply);
+    ],  function(err, res) {
+        callback(err, res);
     });
-}
+};
 
 /**
  * @brief function del
  *
  * @param key
- * @param callback ptr to function, err is error info, reply is value of the key.
+ * @param callback(err, res) ptr to function, err is error info, res is value of the key.
  *
  * @return undefined
  */
 RabbitRedisClient.prototype.del = function(key, callback) {
     this.client.del(key, callback);
-}
+};
 
 /**
  * @brief function close the connection of redis
@@ -98,7 +114,7 @@ RabbitRedisClient.prototype.del = function(key, callback) {
  */
 RabbitRedisClient.prototype.close = function() {
     this.client.quit();
-}
+};
 
 /**
  * @brief function createRabbitReddisClient
@@ -107,5 +123,4 @@ RabbitRedisClient.prototype.close = function() {
  */
 exports.createRabbitRedisClient = function () {
     return new RabbitRedisClient();
-}
-
+};
