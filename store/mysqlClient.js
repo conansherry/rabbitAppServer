@@ -18,7 +18,7 @@ var pool   = mysql.createPool({
     password        : "rabbit",
     database        : "rabbitdb",
     dateStrings     : true,
-    charset         : 'utf8'
+    charset         : "utf8""
 });
 
 function RabbitMysqlClient() {
