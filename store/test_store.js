@@ -25,7 +25,7 @@ async.series([function(cb){
     });
 },
 function(cb){
-    s.addNews([{title:"你好",thumbnail:2,type:0,content:"大家好，我是黄艺林-菟籽琳",time:date.getTime(),pics:"23,22,25,33"}, {title:"你好",thumbnail:2,type:0,content:"大家好，我是黄艺林-菟籽琳",time:date.getTime(),pics:"23,22,25,33"}], function(err, res){
+    s.addNews([{id:1,title:"哈哈",thumbnail:2,type:0,content:"#女团1931来袭#海南媒体见面会正式开始啦[鼓掌][鼓掌][鼓掌]媒体朋友和妹子们问答得好欢乐[偷笑]海南的海风跟1931的妹纸一样甜美[微风]感谢媒体朋友和粉丝们嗒支持[心]",time:date.getTime(),pics:"23,22,25,33"}, {title:"你好",thumbnail:2,type:0,content:"大家好，我是黄艺林-菟籽琳",time:date.getTime(),pics:"23,22,25,33"}], function(err, res){
         if(err)
             logger.error(err);
         else
@@ -42,7 +42,7 @@ function(cb){
 },
 function(cb) {
     logger.debug("start addImages");
-    s.addImages([new Buffer(fs.readFileSync("./thumbnail.jpg")).toString("base64"),new Buffer(fs.readFileSync("./thumbnail.jpg")).toString('base64')],function(err, res){
+    s.addImages(["1","2"],function(err, res){
         logger.debug(res);
         cb(err, res);
     });

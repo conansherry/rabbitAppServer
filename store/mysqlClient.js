@@ -18,7 +18,7 @@ var pool   = mysql.createPool({
     password        : "rabbit",
     database        : "rabbitdb",
     dateStrings     : true,
-    charset         : "utf8""
+    charset         : "utf8mb4"
 });
 
 function RabbitMysqlClient() {
@@ -43,7 +43,7 @@ RabbitMysqlClient.prototype.set = function(commands, callback) {
             sql = sql+field+"=values("+field+") ,";
         }
         sql = sql.substring(0, sql.length-2);
-        logger.debug(debugPrefix+sql);
+        logger.debug(debugPrefix+sql+" ID:"+commands["value"]["id"]);
         connection.query(sql, commands["value"], function(err, res) {
             callback(err, res);
             logger.debug(debugPrefix+"release connection");

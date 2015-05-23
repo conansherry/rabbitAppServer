@@ -24,7 +24,7 @@ RabbitStore.prototype.getNewsList = function(callback) {
         logger.debug(debugPrefix+typeof res);
         if(err) {
             logger.warn(debugPrefix+err.message);
-            self.mysql.get({"table":"news","column":"id","order":"time desc"}, function(err, res) {
+            self.mysql.get({"table":"news","column":"id","where":"type=0","order":"time desc"}, function(err, res) {
                 if(err || res.length == 0) {
                     callback(err, null);
                 }
@@ -57,44 +57,54 @@ RabbitStore.prototype.addNews = function(newsObject, callback) {
     var addOneNews = function(oneNews, cb){
         async.waterfall([
             function(wfcb) {
-                self.mysql.get({"table":"news","column":"max(id) as maxid"}, function(err, res) {
-                    if(err || res.length == 0) {
-                        wfcb(err, null);
-                    }
-                    else {
-                        if(res[0]["maxid"] === null)
-                            wfcb(null, 0);
-                        else
-                            wfcb(null, res[0]["maxid"]);
-                    }
-                });
+                if(oneNews.hasOwnProperty("id")) {
+                    wfcb(null, oneNews["id"]);
+                }
+                else {
+                    self.mysql.get({"table":"news","column":"max(id) as maxid"}, function(err, res) {
+                        if(err || res.length == 0) {
+                            wfcb(err, null);
+                        }
+                        else {
+                            if(res[0]["maxid"] === null)
+                                wfcb(null, 0);
+                            else
+                                wfcb(null, res[0]["maxid"]+1);
+                        }
+                    });
+                }
             },
-            function(maxid, wfcb) {
-                maxid++;
-                oneNews["id"] = maxid;
+            function(newsId, wfcb) {
+                oneNews["id"] = newsId;
                 self.mysql.set({"table":"news","value":oneNews}, function(err, res) {
                     if(err) {
+                        logger.error(debugPrefix+err);
+                        logger.error(new Buffer(oneNews["content"]));
                         wfcb(err, null);
                     }
                     else {
                         async.parallel([
                             function(pcb) {
-                                logger.debug(debugPrefix+oneNews);
-                                self.redis.set("CD:NEWS:"+maxid, oneNews, function(err, res) {
+                                logger.debug(debugPrefix+"del newsId:"+newsId);
+                                self.redis.del("CD:NEWS:"+newsId, function(err, res) {
                                     pcb(err, res);
                                 });
                             },
                             function(pcb) {
-                                self.redis.del("OC:NEWS:LIST", function(err, res){
+                                if(oneNews["type"] == 0) {
+                                    self.redis.del("OC:NEWS:LIST", function(err, res){
+                                        pcb(err, res);
+                                    });
+                                }
+                                else//该死的回调
                                     pcb(err, res);
-                                });
                             }
                         ], function(err, res) {
                             if(err) {
                                 wfcb(err, null);
                             }
                             else {
-                                wfcb(err, maxid);
+                                wfcb(err, newsId);
                             }
                         });
                     }
@@ -176,7 +186,7 @@ RabbitStore.prototype.addImages = function(imagesObject, callback) {
             function(maxid, wfcb) {
                 maxid++;
                 logger.debug(debugPrefix+"ready to insert image id:"+maxid);
-                self.mysql.set({"table":"images","value":{"id":maxid,"data":new Buffer(image, 'base64')}}, function(err, res) {
+                self.mysql.set({"table":"images","value":{"id":maxid,"data":image}}, function(err, res) {
                     if(err) {
                         wfcb(err, null);
                     }
@@ -226,13 +236,13 @@ RabbitStore.prototype.getImages = function(idList, callback){
             self.redis.get("CD:IMAGES:"+item, function(err, res) {
                 if(err) {
                     logger.warn(debugPrefix+err.message);
-                    self.mysql.get({"table":"images","column":"*","where":"id="+item}, function(err, res) {
+                    self.mysql.get({"table":"images","column":"data","where":"id="+item}, function(err, res) {
                         if(err || res.length == 0) {
                             logger.debug(debugPrefix+err);
                             cb(err, null);
                         }
                         else {
-                            res[0]["data"] = res[0]["data"].toString("base64");
+                            //res[0]["data"] = res[0]["data"].toString("base64");
                             self.redis.set("CD:IMAGES:"+item, res[0], function(err, res) {
                                 logger.debug(debugPrefix+"set redis success");
                             });
