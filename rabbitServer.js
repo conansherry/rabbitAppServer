@@ -44,6 +44,21 @@ var pic2url = function(numList, callback) {
     });
 };
 
+var date2String = function(time) {
+    var monthNames = [
+        "January", "February", "March",
+        "April", "May", "June", "July",
+        "August", "September", "October",
+        "November", "December"
+    ];
+    var timeData = new Date();
+    timeData.setTime(time);
+    var day = timeData.getDate();
+    var month = timeData.getMonth()+1;
+    var year = timeData.getFullYear();
+    return year+"-"+month+"-"+day+" "+timeData.toLocaleTimeString();
+}
+
 var extractNews = function(allIds, finalCallback) {
     var debugPrefix = "[extractNews]";
     rabbitStore.getNews(allIds, function(err, news) {
@@ -51,6 +66,7 @@ var extractNews = function(allIds, finalCallback) {
         news.forEach(function(oneNew) {
             tasks.push(function(newCallback) {
                 if(oneNew) {
+                    oneNew["time"] = date2String(oneNew["time"]);
                     logger.debug(oneNew);
                     async.parallel([
                         function(callback) {
