@@ -86,7 +86,7 @@ RabbitStore.prototype.addNews = function(newsObject, callback) {
                         async.parallel([
                             function(pcb) {
                                 logger.debug(debugPrefix+"del newsId:"+newsId);
-                                self.redis.del("CD:NEWS:"+newsId, function(err, res) {
+                                self.redis.set("CD:NEWS:"+newsId, oneNews, function(err, res) {
                                     pcb(err, res);
                                 });
                             },
@@ -96,7 +96,7 @@ RabbitStore.prototype.addNews = function(newsObject, callback) {
                                         pcb(err, res);
                                     });
                                 }
-                                else//该死的回调
+                                else
                                     pcb(err, res);
                             }
                         ], function(err, res) {
