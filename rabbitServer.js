@@ -56,7 +56,7 @@ var date2String = function(time) {
     var day = timeData.getDate();
     var month = timeData.getMonth()+1;
     var year = timeData.getFullYear();
-    return year+"-"+month+"-"+day+" "+timeData.toLocaleTimeString();
+    return month+"-"+day+" "+timeData.toLocaleTimeString();
 }
 
 var extractNews = function(allIds, finalCallback) {
@@ -143,6 +143,7 @@ var extractNews = function(allIds, finalCallback) {
 app.get("/getNews", function(req, res) {
     var debugPrefix = "[getNews]";
     logger.info(debugPrefix+req.url);
+    logger.info(debugPrefix+"request by:"+req.connection.remoteAddress);
 
     var args = url.parse(req.url, true).query;
     if(args.hasOwnProperty("since_id")) {
@@ -193,7 +194,7 @@ app.get("/getNews", function(req, res) {
                 var first = 0;
                 if(max_id > 0) {
                     for(first = 0; first < allIds.length; first++) {
-                        if(max_id >= allIds[first])
+                        if(max_id > allIds[first])
                             break;
                     }
                 }

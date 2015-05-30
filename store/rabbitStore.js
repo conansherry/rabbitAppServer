@@ -243,10 +243,10 @@ RabbitStore.prototype.getImages = function(idList, callback){
                         }
                         else {
                             //res[0]["data"] = res[0]["data"].toString("base64");
-                            self.redis.set("CD:IMAGES:"+item, res[0], function(err, res) {
+                            self.redis.set("CD:IMAGES:"+item, res[0]["data"], function(err, res) {
                                 logger.debug(debugPrefix+"set redis success");
                             });
-                            cb(err, res[0]);
+                            cb(err, res[0]["data"]);
                         }
                     });
                 }

@@ -43,7 +43,7 @@ RefreshRabbitData.prototype.isRabbit = function(uid) {
 RefreshRabbitData.prototype.createRabbitObject = function(rabbit, photo, pics, type) {
     var debugPrefix = "[createRabbitObject]";
     var self = this;
-    var rabbitObject = {id:rabbit["id"], title:rabbit["user"]["description"], thumbnail:photo, type:type, content:rabbit["text"], time:self.parseDate(rabbit["created_at"]).getTime(), pics:(pics.length > 0) ? pics.toString() : null, "location":rabbit["user"]["location"]};
+    var rabbitObject = {id:rabbit["id"], title:rabbit["user"]["name"], thumbnail:photo, type:type, content:rabbit["text"], time:self.parseDate(rabbit["created_at"]).getTime(), pics:(pics.length > 0) ? pics.toString() : null, "location":rabbit["user"]["location"]};
     if(rabbit.hasOwnProperty("retweeted_status"))
         rabbitObject["extra"] = rabbit["retweeted_status"]["id"];
     logger.debug(debugPrefix+JSON.stringify(rabbitObject));
@@ -63,22 +63,22 @@ RefreshRabbitData.prototype.extractPictures = function(rabbitPicUrls, callback) 
                 });
             }
         );
-        tasks.push(
-            function(cb) {
-                logger.debug(item["thumbnail_pic"].replace("thumbnail","bmiddle"));
-                self.rabbitStore.addImages(item["thumbnail_pic"].replace("thumbnail","bmiddle"), function(err, res) {
-                    cb(err, res[0]);
-                });
-            }
-        );
-        tasks.push(
-            function(cb) {
-                logger.debug(item["thumbnail_pic"].replace("thumbnail","large"));
-                self.rabbitStore.addImages(item["thumbnail_pic"].replace("thumbnail","large"), function(err, res) {
-                    cb(err, res[0]);
-                });
-            }
-        );
+        //tasks.push(
+        //    function(cb) {
+        //        logger.debug(item["thumbnail_pic"].replace("thumbnail","bmiddle"));
+        //        self.rabbitStore.addImages(item["thumbnail_pic"].replace("thumbnail","bmiddle"), function(err, res) {
+        //            cb(err, res[0]);
+        //        });
+        //    }
+        //);
+        //tasks.push(
+        //    function(cb) {
+        //        logger.debug(item["thumbnail_pic"].replace("thumbnail","large"));
+        //        self.rabbitStore.addImages(item["thumbnail_pic"].replace("thumbnail","large"), function(err, res) {
+        //            cb(err, res[0]);
+        //        });
+        //    }
+        //);
     });
     async.series(tasks, function(err, res){
         if(err)
