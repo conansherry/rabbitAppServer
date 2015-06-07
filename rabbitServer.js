@@ -20,7 +20,14 @@ var url         = require("url");
 var rabbitStore = store.createRabbitStore();
 
 app.get("/", function(req, res) {
-    res.send("菟籽琳数据服务器. Power by conansherry. Email:conansherry@163.com");
+    res.send("菟籽琳数据服务器. Power by conansherry. Email:conansherry.hy@gmail.com");
+});
+
+app.get("/update", function(req, res) {
+    var debugPrefix = "[update]";
+    logger.info(debugPrefix+"request by:"+req.connection.remoteAddress+" want to update");
+    var updateObject={"version":1.2, "url":"http://120.25.122.107:8989/apk/rabbit.apk", "info":"*修复网络状态差时可能出现的bug\n*增加启动画面更新功能"};
+    res.send(JSON.stringify(updateObject));
 });
 
 app.get("/getList", function(req, res) {
@@ -45,12 +52,6 @@ var pic2url = function(numList, callback) {
 };
 
 var date2String = function(time) {
-    var monthNames = [
-        "January", "February", "March",
-        "April", "May", "June", "July",
-        "August", "September", "October",
-        "November", "December"
-    ];
     var timeData = new Date();
     timeData.setTime(time);
     var day = timeData.getDate();
