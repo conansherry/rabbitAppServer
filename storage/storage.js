@@ -1,5 +1,5 @@
 /**
- * @file store.js
+ * @file storage.js
  * @brief combine redis&mysql
  * @author conansherry
  * @version 1.0
@@ -9,14 +9,14 @@
 var redisModule = require("./redisClient.js");
 var mysqlModule = require("./mysqlClient.js");
 var log4js = require("log4js")
-var logger = log4js.getLogger("rabbitStore.js");
+var logger = log4js.getLogger("rabbitStorage.js");
 
-function RabbitStore() {
+function RabbitStorage() {
     this.redis = redisModule.createRabbitRedisClient();
     this.mysql = mysqlModule.createRabbitMysqlClient();
 }
 
-RabbitStore.prototype.set = function(key, value, callback) {
+RabbitStorage.prototype.set = function(key, value, callback) {
     var self = this;
     var keysArray = key.split(":");
     logger.debug(keysArray);
@@ -40,7 +40,7 @@ RabbitStore.prototype.set = function(key, value, callback) {
     }
 }
 
-RabbitStore.prototype.get = function(key, callback) {
+RabbitStorage.prototype.get = function(key, callback) {
     var self = this;
     var keysArray = key.split(":");
     logger.debug(keysArray);
@@ -88,6 +88,6 @@ RabbitStore.prototype.get = function(key, callback) {
     }
 }
 
-exports.createRabbitStore = function() {
-    return new RabbitStore();
+exports.createRabbitStorage = function() {
+    return new RabbitStorage();
 }

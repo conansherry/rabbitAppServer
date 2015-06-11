@@ -13,11 +13,11 @@ var log4js      = require("log4js")
 log4js.loadAppender('file');
 log4js.addAppender(log4js.appenders.file("/mnt/log/rabbitServer.log"));
 log4js.setGlobalLogLevel("INFO");
-var logger      = log4js.getLogger("rabbitStore.js");
-var store       = require("./store/rabbitStore.js");
+var logger      = log4js.getLogger("rabbitStorage.js");
+var storage     = require("./storage/rabbitStorage.js");
 var url         = require("url");
 
-var rabbitStore = store.createRabbitStore();
+var rabbitStorage = storage.createRabbitStorage();
 
 app.get("/", function(req, res) {
     res.send("菟籽琳数据服务器. Power by conansherry. Email:conansherry.hy@gmail.com");
@@ -32,7 +32,7 @@ app.get("/update", function(req, res) {
 
 app.get("/getList", function(req, res) {
     var debugPrefix = "[getList]";
-    rabbitStore.getNewsList(function(err, newsList) {
+    rabbitStorage.getNewsList(function(err, newsList) {
         if(err)
             logger.error(debugPrefix+err);
         else {
@@ -45,7 +45,7 @@ app.get("/getList", function(req, res) {
 
 var pic2url = function(numList, callback) {
     var debugPrefix = "[pic2url]";
-    rabbitStore.getImages(numList, function(err, imagesList) {
+    rabbitStorage.getImages(numList, function(err, imagesList) {
         logger.debug(debugPrefix+imagesList);
         callback(err, imagesList);
     });
@@ -62,7 +62,7 @@ var date2String = function(time) {
 
 var extractNews = function(allIds, finalCallback) {
     var debugPrefix = "[extractNews]";
-    rabbitStore.getNews(allIds, function(err, news) {
+    rabbitStorage.getNews(allIds, function(err, news) {
         var tasks = [];
         news.forEach(function(oneNew) {
             tasks.push(function(newCallback) {
@@ -92,7 +92,7 @@ var extractNews = function(allIds, finalCallback) {
                         function(callback) {
                             if(oneNew.hasOwnProperty("extra") && oneNew["extra"] !== null) {
                                 //转发微博
-                                rabbitStore.getNews(oneNew["extra"], function(err, single) {
+                                rabbitStorage.getNews(oneNew["extra"], function(err, single) {
                                     var extraInfo = single[0];
                                     async.parallel([
                                         function(extraCallback) {
@@ -148,7 +148,7 @@ app.get("/getNews", function(req, res) {
 
     var args = url.parse(req.url, true).query;
     if(args.hasOwnProperty("since_id")) {
-        rabbitStore.getNewsList(function(err, newsList) {
+        rabbitStorage.getNewsList(function(err, newsList) {
             if(err) {
                 logger.error(debugPrefix+err);
                 res.end();
@@ -182,7 +182,7 @@ app.get("/getNews", function(req, res) {
             max_id = parseInt(args.max_id);
         }
 
-        rabbitStore.getNewsList(function(err, newsList) {
+        rabbitStorage.getNewsList(function(err, newsList) {
             if(err) {
                 logger.error(debugPrefix+err);
                 res.end();

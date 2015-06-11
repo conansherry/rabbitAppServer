@@ -1,5 +1,5 @@
 /**
- * @file store.js
+ * @file storage.js
  * @brief combine redis&mysql
  * @author conansherry
  * @version 1.0
@@ -10,14 +10,14 @@ var redisModule = require("./redisClient.js");
 var mysqlModule = require("./mysqlClient.js");
 var async       = require("async");
 var log4js      = require("log4js")
-var logger      = log4js.getLogger("rabbitStore.js");
+var logger      = log4js.getLogger("rabbitStorage.js");
 
-function RabbitStore() {
+function RabbitStorage() {
     this.redis = redisModule.createRabbitRedisClient();
     this.mysql = mysqlModule.createRabbitMysqlClient();
 }
 
-RabbitStore.prototype.getNewsList = function(callback) {
+RabbitStorage.prototype.getNewsList = function(callback) {
     var debugPrefix = "[getNewsList]";
     var self = this;
     self.redis.get("OC:NEWS:LIST", function(err, res) {
@@ -51,7 +51,7 @@ RabbitStore.prototype.getNewsList = function(callback) {
     });
 };
 
-RabbitStore.prototype.addNews = function(newsObject, callback) {
+RabbitStorage.prototype.addNews = function(newsObject, callback) {
     var debugPrefix = "[addNews]";
     var self = this;
     var addOneNews = function(oneNews, cb){
@@ -130,7 +130,7 @@ RabbitStore.prototype.addNews = function(newsObject, callback) {
     async.series(tasks, callback);
 };
 
-RabbitStore.prototype.getNews = function(idList, callback) {
+RabbitStorage.prototype.getNews = function(idList, callback) {
     var debugPrefix = "[getNews]";
     var self = this;
     var tasks = [];
@@ -164,7 +164,7 @@ RabbitStore.prototype.getNews = function(idList, callback) {
     async.parallel(tasks, callback);
 };
 
-RabbitStore.prototype.addImages = function(imagesObject, callback) {
+RabbitStorage.prototype.addImages = function(imagesObject, callback) {
     var debugPrefix = "[addImages]";
     var self = this;
     var addImage = function(image, cb) {
@@ -224,7 +224,7 @@ RabbitStore.prototype.addImages = function(imagesObject, callback) {
     async.series(tasks, callback);
 };
 
-RabbitStore.prototype.getImages = function(idList, callback){
+RabbitStorage.prototype.getImages = function(idList, callback){
     var debugPrefix = "[getImages]";
     var self = this;
     if(!(idList instanceof Array)) {
@@ -260,6 +260,6 @@ RabbitStore.prototype.getImages = function(idList, callback){
     async.parallel(tasks, callback);
 };
 
-exports.createRabbitStore = function() {
-    return new RabbitStore();
+exports.createRabbitStorage = function() {
+    return new RabbitStorage();
 };

@@ -6,7 +6,7 @@
  * @date 2015-05-21
  */
 
-var store   = require("../store/rabbitStore.js");
+var storage   = require("../storage/rabbitStorage.js");
 var async   = require("async");
 var log4js  = require("log4js")
 var logger  = log4js.getLogger("refreshRabbitData.js");
@@ -15,7 +15,7 @@ var request = require("request");
 var fs = require("fs");
 
 function RefreshRabbitData() {
-    this.rabbitStore = store.createRabbitStore();
+    this.rabbitStorage = storage.createRabbitStorage();
     this.requestUrl = "https://api.weibo.com/2/statuses/home_timeline.json?access_token=2.00TMKtHGJyWsQCe8ae180c5btvz2PB";
 }
 
@@ -58,7 +58,7 @@ RefreshRabbitData.prototype.extractPictures = function(rabbitPicUrls, callback) 
         tasks.push(
             function(cb) {
                 logger.debug(item["thumbnail_pic"]);
-                self.rabbitStore.addImages(item["thumbnail_pic"], function(err, res) {
+                self.rabbitStorage.addImages(item["thumbnail_pic"], function(err, res) {
                     cb(err, res[0]);
                 });
             }
@@ -66,7 +66,7 @@ RefreshRabbitData.prototype.extractPictures = function(rabbitPicUrls, callback) 
         //tasks.push(
         //    function(cb) {
         //        logger.debug(item["thumbnail_pic"].replace("thumbnail","bmiddle"));
-        //        self.rabbitStore.addImages(item["thumbnail_pic"].replace("thumbnail","bmiddle"), function(err, res) {
+        //        self.rabbitStorage.addImages(item["thumbnail_pic"].replace("thumbnail","bmiddle"), function(err, res) {
         //            cb(err, res[0]);
         //        });
         //    }
@@ -74,7 +74,7 @@ RefreshRabbitData.prototype.extractPictures = function(rabbitPicUrls, callback) 
         //tasks.push(
         //    function(cb) {
         //        logger.debug(item["thumbnail_pic"].replace("thumbnail","large"));
-        //        self.rabbitStore.addImages(item["thumbnail_pic"].replace("thumbnail","large"), function(err, res) {
+        //        self.rabbitStorage.addImages(item["thumbnail_pic"].replace("thumbnail","large"), function(err, res) {
         //            cb(err, res[0]);
         //        });
         //    }
@@ -107,7 +107,7 @@ RefreshRabbitData.prototype.saveRabbit = function(rabbits, idList, callback) {
                 if(rabbit.hasOwnProperty("retweeted_status") && idList.indexOf(rabbit["retweeted_status"]["id"]) == -1) {
                     idList.push(rabbit["retweeted_status"]["id"]);
                     self.extractPictures(rabbit["retweeted_status"]["pic_urls"], function(err, retPics) {
-                        self.rabbitStore.addImages(rabbit["retweeted_status"]["user"]["avatar_large"], function(err, retThumb) {
+                        self.rabbitStorage.addImages(rabbit["retweeted_status"]["user"]["avatar_large"], function(err, retThumb) {
                             rabbitObjects.push(self.createRabbitObject(rabbit["retweeted_status"], retThumb[0], retPics, self.isRabbit(rabbit["retweeted_status"]["user"]["uid"]) ? 0 : 1));
                             //再插入主微博
                             idList.push(rabbit["id"]);
@@ -124,9 +124,9 @@ RefreshRabbitData.prototype.saveRabbit = function(rabbits, idList, callback) {
                                 if(rabbit.hasOwnProperty("retweeted_status")) {
                                     logger.debug("RET#"+"转发ID "+rabbit["retweeted_status"]["id"]);
                                 }
-                                self.rabbitStore.addImages(rabbit["user"]["avatar_large"], function(err, thumb) {
+                                self.rabbitStorage.addImages(rabbit["user"]["avatar_large"], function(err, thumb) {
                                     rabbitObjects.push(self.createRabbitObject(rabbit, thumb[0], pics, 0));
-                                    self.rabbitStore.addNews(rabbitObjects, function(err, res) {
+                                    self.rabbitStorage.addNews(rabbitObjects, function(err, res) {
                                         if(err)
                                             logger.error(debugPrefix+err);
                                         else
@@ -154,9 +154,9 @@ RefreshRabbitData.prototype.saveRabbit = function(rabbits, idList, callback) {
                         if(rabbit.hasOwnProperty("retweeted_status")) {
                             logger.debug("RET#"+"转发ID "+rabbit["retweeted_status"]["id"]);
                         }
-                        self.rabbitStore.addImages(rabbit["user"]["avatar_large"], function(err, thumb) {
+                        self.rabbitStorage.addImages(rabbit["user"]["avatar_large"], function(err, thumb) {
                             rabbitObjects.push(self.createRabbitObject(rabbit, thumb[0], pics, 0));
-                            self.rabbitStore.addNews(rabbitObjects, function(err, res) {
+                            self.rabbitStorage.addNews(rabbitObjects, function(err, res) {
                                 if(err)
                                     logger.error(debugPrefix+err);
                                 else
@@ -182,7 +182,7 @@ RefreshRabbitData.prototype.load = function() {
     async.waterfall([
         function(callback) {
             logger.debug(debugPrefix+"step 1");
-            self.rabbitStore.getNewsList(function(err, res) {
+            self.rabbitStorage.getNewsList(function(err, res) {
                 if(err || res === null) {
                     logger.debug(debugPrefix+res);
                     callback(null, null);
