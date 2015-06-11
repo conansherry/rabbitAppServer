@@ -9,12 +9,12 @@
 var redisModule = require("./redisClient.js");
 var mysqlModule = require("./mysqlClient.js");
 var async       = require("async");
-var log4js      = require("log4js")
+var log4js      = require("log4js");
 var logger      = log4js.getLogger("rabbitStorage.js");
 
-function RabbitStorage() {
-    this.redis = redisModule.createRabbitRedisClient();
-    this.mysql = mysqlModule.createRabbitMysqlClient();
+function RabbitStorage(options) {
+    this.redis = redisModule.createRabbitRedisClient(options.redis);
+    this.mysql = mysqlModule.createRabbitMysqlClient(options.mysql);
 }
 
 RabbitStorage.prototype.getNewsList = function(callback) {
@@ -260,6 +260,6 @@ RabbitStorage.prototype.getImages = function(idList, callback){
     async.parallel(tasks, callback);
 };
 
-exports.createRabbitStorage = function() {
-    return new RabbitStorage();
+exports.createRabbitStorage = function(options) {
+    return new RabbitStorage(options);
 };

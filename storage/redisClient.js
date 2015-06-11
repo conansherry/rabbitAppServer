@@ -8,16 +8,28 @@
 
 var redis  = require("redis");
 var async  = require("async");
-var log4js = require("log4js")
+var log4js = require("log4js");
 var logger = log4js.getLogger("redisClient.js");
+
+var config = {
+    host: "127.0.0.1",
+    port: 6379,
+    options: {
+    }
+};
 
 //redis.debug_mode = true;
 
 /*
  * redis+node work in single thread. use global redis handler;
  */
-var redisClient = redis.createClient();
-function RabbitRedisClient() {
+var redisClient;
+function RabbitRedisClient(options) {
+    for (var i in options) {
+        config[i] = options[i];
+    }
+    redisClient = redis.createClient(config.port, config.host, config.options);
+
     this.client = redisClient;
 }
 
@@ -121,6 +133,6 @@ RabbitRedisClient.prototype.close = function() {
  *
  * @return instance of client
  */
-exports.createRabbitRedisClient = function () {
-    return new RabbitRedisClient();
+exports.createRabbitRedisClient = function (options) {
+    return new RabbitRedisClient(options);
 };

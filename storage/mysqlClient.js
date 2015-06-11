@@ -10,18 +10,22 @@ var mysql  = require("mysql");
 var async  = require("async");
 var log4js = require("log4js")
 var logger = log4js.getLogger("mysqlClient.js");
+var config = {
+    connectionLimit: 100,
+    host: "localhost",
+    user: "rabbit",
+    password: "rabbit",
+    database: "test",
+    dateStrings: true,
+    charset: "utf8mb4"
+}
 
-var pool   = mysql.createPool({
-    connectionLimit : 100,
-    host            : "localhost",
-    user            : "rabbit",
-    password        : "rabbit",
-    database        : "rabbitdb",
-    dateStrings     : true,
-    charset         : "utf8mb4"
-});
-
-function RabbitMysqlClient() {
+var pool;
+function RabbitMysqlClient(options) {
+    for (var i in options) {
+        config[i] = options[i];
+    }
+    pool   = mysql.createPool(config);
     this.client = pool;
 }
 
@@ -85,6 +89,6 @@ RabbitMysqlClient.prototype.get = function(commands, callback) {
  *
  * @return instance of client
  */
-exports.createRabbitMysqlClient = function() {
-    return new RabbitMysqlClient();
+exports.createRabbitMysqlClient = function(options) {
+    return new RabbitMysqlClient(options);
 };

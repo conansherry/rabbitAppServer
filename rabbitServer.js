@@ -9,7 +9,8 @@
 var express     = require("express");
 var app         = express();
 var async       = require("async");
-var log4js      = require("log4js")
+var log4js      = require("log4js");
+var config      = require("config");
 log4js.loadAppender('file');
 log4js.addAppender(log4js.appenders.file("/mnt/log/rabbitServer.log"));
 log4js.setGlobalLogLevel("INFO");
@@ -17,7 +18,9 @@ var logger      = log4js.getLogger("rabbitStorage.js");
 var storage     = require("./storage/rabbitStorage.js");
 var url         = require("url");
 
-var rabbitStorage = storage.createRabbitStorage();
+var storageConf = config.get('storage');
+
+var rabbitStorage = storage.createRabbitStorage(storageConf);
 
 app.get("/", function(req, res) {
     res.send("菟籽琳数据服务器. Power by conansherry. Email:conansherry.hy@gmail.com");
@@ -208,7 +211,7 @@ app.get("/getNews", function(req, res) {
     }
 });
 
-var server = app.listen(8888, function() {
+var server = app.listen(config.get('server.listen'), function() {
     var host = server.address().address;
     var port = server.address().port;
     logger.info("Start RabbitServer. Listening at http://%s:%s", host, port);
