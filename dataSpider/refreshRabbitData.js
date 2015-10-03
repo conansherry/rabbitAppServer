@@ -11,11 +11,14 @@ var async   = require("async");
 var log4js  = require("log4js")
 var logger  = log4js.getLogger("refreshRabbitData.js");
 var request = require("request");
+var config  = require("config");
 
 var fs = require("fs");
 
+var storageConf = config.get("storage");
+
 function RefreshRabbitData() {
-    this.rabbitStorage = storage.createRabbitStorage();
+    this.rabbitStorage = storage.createRabbitStorage(storageConf);
     this.requestUrl = "https://api.weibo.com/2/statuses/home_timeline.json?access_token=2.00TMKtHGJyWsQCe8ae180c5btvz2PB";
 }
 

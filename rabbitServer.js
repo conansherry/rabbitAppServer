@@ -18,7 +18,7 @@ var logger      = log4js.getLogger("rabbitStorage.js");
 var storage     = require("./storage/rabbitStorage.js");
 var url         = require("url");
 
-var storageConf = config.get('storage');
+var storageConf = config.get("storage");
 
 var rabbitStorage = storage.createRabbitStorage(storageConf);
 
