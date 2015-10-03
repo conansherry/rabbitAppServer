@@ -1,0 +1,22 @@
+{
+    "storage": {
+        "mysql": {
+            "connectionLimit": 100,
+            "host": "localhost",
+            "user": "root",
+            "password": "bupt",
+            "database": "test",
+            "dateStrings": true,
+            "charset": "utf8mb4"
+        },
+        "redis": {
+            "host": "127.0.0.1",
+            "port": 6380,
+            "options": {
+            }
+        }
+    },
+    "server": {
+        "listen": 8889
+    }
+}
