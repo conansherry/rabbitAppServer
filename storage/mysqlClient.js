@@ -20,19 +20,22 @@ var config = {
     charset: "utf8mb4"
 }
 
+/*
+ * use global handler
+ */
 var pool;
 function RabbitMysqlClient(options) {
     for (var i in options) {
         config[i] = options[i];
     }
-    pool   = mysql.createPool(config);
+    pool = mysql.createPool(config);
     this.client = pool;
 }
 
 /**
  * @brief function insert into table on duplicate key update
  *
- * @param commands js object. example:{"table":"person","value":{"id":6,"name":"lan1","age":17,"thumbnail":new Buffer(fs.readFileSync('./thumbnail.jpg'))}}. type/table/value is necessary.
+ * @param commands js object. example:{"table":"person","value":{"id":6,"name":"lan1","age":17,"thumbnail":new Buffer(fs.readFileSync('./thumbnail.jpg'))}}. table/value is necessary.
  * @param callback(err,res)
  *
  * @return undefined
@@ -47,7 +50,7 @@ RabbitMysqlClient.prototype.set = function(commands, callback) {
             sql = sql+field+"=values("+field+") ,";
         }
         sql = sql.substring(0, sql.length-2);
-        logger.debug(debugPrefix+sql+" ID:"+commands["value"]["id"]);
+        logger.debug(debugPrefix+sql);
         connection.query(sql, commands["value"], function(err, res) {
             callback(err, res);
             logger.debug(debugPrefix+"release connection");
@@ -59,7 +62,7 @@ RabbitMysqlClient.prototype.set = function(commands, callback) {
 /**
  * @brief function select from table
  *
- * @param commands js object. example:{"table":"person","column":"name","where":"name='conan' and age=10"}. type/table/column is necessary. where is optional.
+ * @param commands js object. example:{"table":"person","column":"name","where":"name='conan' and age=10"}. table/column is necessary. where is optional. order is optional.
  * @param callback(err, rows, fields)
  *
  * @return undefined

@@ -29,7 +29,6 @@ function RabbitRedisClient(options) {
         config[i] = options[i];
     }
     redisClient = redis.createClient(config.port, config.host, config.options);
-
     this.client = redisClient;
 }
 

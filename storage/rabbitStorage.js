@@ -224,7 +224,7 @@ RabbitStorage.prototype.addImages = function(imagesObject, callback) {
     async.series(tasks, callback);
 };
 
-RabbitStorage.prototype.getImages = function(idList, callback){
+RabbitStorage.prototype.getImages = function(idList, callback) {
     var debugPrefix = "[getImages]";
     var self = this;
     if(!(idList instanceof Array)) {
@@ -242,7 +242,6 @@ RabbitStorage.prototype.getImages = function(idList, callback){
                             cb(err, null);
                         }
                         else {
-                            //res[0]["data"] = res[0]["data"].toString("base64");
                             self.redis.set("CD:IMAGES:"+item, res[0]["data"], function(err, res) {
                                 logger.debug(debugPrefix+"set redis success");
                             });
@@ -258,6 +257,62 @@ RabbitStorage.prototype.getImages = function(idList, callback){
         });
     });
     async.parallel(tasks, callback);
+};
+
+RabbitStorage.prototype.getUser = function(uid, callback) {
+    var debugPrefix = "[getUser]";
+    var self = this;
+    self.mysql.get({"table" : "user", "column" : "uid", "where" : "uid=" + uid}, function(err, res) {
+        if(err || res.length ==0) {
+            logger.debug(debugPrefix + "no user");
+            callback(new Error("NO_USER"));
+        }
+        else {
+            callback(null, res[0].uid);
+        }
+    });
+};
+
+RabbitStorage.prototype.verifyUser = function(uid, pwd, callback) {
+    var debugPrefix = "[verifyUser]";
+    var self = this;
+    self.mysql.get({"table" : "user", "column" : "uid", "where" : "uid=" + uid + " and pwd='" + pwd + "'"}, function(err, res) {
+        if(err || res.length ==0) {
+            logger.debug(debugPrefix + "no user or pwd error");
+            callback(new Error("NON_VALID"));
+        }
+        else {
+            callback(null, res[0].uid);
+        }
+    });
+};
+
+RabbitStorage.prototype.getUserInfo = function(uid, pwd, callback) {
+    var debugPrefix = "[getUserInfo]";
+    var self = this;
+    self.mysql.get({"table" : "user", "column" : "*", "where" : "uid=" + uid + " and pwd='" + pwd + "'"}, function(err, res) {
+        if(err || res.length ==0) {
+            logger.debug(debugPrefix + "no user or pwd error");
+            callback(new Error("NON_VALID"));
+        }
+        else {
+            callback(null, res);
+        }
+    });
+};
+
+RabbitStorage.prototype.addUser = function(userinfo, callback) {
+    var debugPrefix = "[addUser]";
+    var self = this;
+    self.mysql.set({"table" : "user", "value" : userinfo}, function(err, res) {
+        if(err) {
+            logger.debug(debugPrefix + err);
+            callback(err, null);
+        }
+        else {
+            callback(null, null);
+        }
+    });
 };
 
 exports.createRabbitStorage = function(options) {
