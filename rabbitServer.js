@@ -2,8 +2,8 @@
  * @file rabbitServer.js
  * @brief rabbitServer
  * @author conansherry
- * @version 1.0
- * @date 2015-05-23
+ * @version 1.3
+ * @date 2015-10-06
  */
 
 var express     = require("express");
@@ -18,15 +18,17 @@ var logger      = log4js.getLogger("rabbitStorage.js");
 var storage     = require("./storage/rabbitStorage.js");
 var register    = require("./passport/register.js");
 var appdata     = require("./getData/appdata.js");
+var login       = require("./passport/login.js");
 
 var storageConf = config.get("storage");
 
 /*
- * has only one rabbitStorage
+ * has only one rabbitStorage handler
  */
 var rabbitStorage = storage.createRabbitStorage(storageConf);
 register.setRabbitStorageInstance(rabbitStorage);
 appdata.setRabbitStorageInstance(rabbitStorage);
+login.setRabbitStorageInstance(rabbitStorage);
 
 app.use(require('body-parser').urlencoded({extended : true}));
 
@@ -35,6 +37,8 @@ app.get("/", function(req, res) {
 });
 
 app.post("/register", register.register);
+
+app.post("/login", login.login);
 
 app.get("/update", function(req, res) {
     var debugPrefix = "[update]";

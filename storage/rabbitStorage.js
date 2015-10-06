@@ -264,7 +264,7 @@ RabbitStorage.prototype.getUser = function(uid, callback) {
     var self = this;
     self.mysql.get({"table" : "user", "column" : "uid", "where" : "uid=" + uid}, function(err, res) {
         if(err || res.length ==0) {
-            logger.debug(debugPrefix + "no user");
+            logger.info(debugPrefix + "no user");
             callback(new Error("NO_USER"));
         }
         else {
@@ -273,16 +273,33 @@ RabbitStorage.prototype.getUser = function(uid, callback) {
     });
 };
 
-RabbitStorage.prototype.verifyUser = function(uid, pwd, callback) {
+RabbitStorage.prototype.verifyUser = function(uid, callback) {
     var debugPrefix = "[verifyUser]";
     var self = this;
-    self.mysql.get({"table" : "user", "column" : "uid", "where" : "uid=" + uid + " and pwd='" + pwd + "'"}, function(err, res) {
-        if(err || res.length ==0) {
-            logger.debug(debugPrefix + "no user or pwd error");
-            callback(new Error("NON_VALID"));
+    self.redis.hashget("CD:USERPWD:" + uid, function(err, res) {
+        if(err || res == null) {
+            if(err)
+                logger.error(debugPrefix + err.message);
+            else
+                logger.debug(debugPrefix + "res == null");
+            self.mysql.get({"table" : "user", "column" : "uid, pwd", "where" : "uid=" + uid}, function(err, res) {
+                if(err || res.length !=1) {
+                    logger.debug(debugPrefix + "no user");
+                    callback(new Error("NO_USER"));
+                }
+                else {
+                    logger.debug(debugPrefix + JSON.stringify(res));
+                    self.redis.hashset("CD:USERPWD:" + uid, res[0], function(err, res) {
+                        if(err)
+                            logger.error(debugPrefix + err.message);
+                    });
+                    callback(null, res[0]);
+                }
+            });
         }
         else {
-            callback(null, res[0].uid);
+            logger.debug(debugPrefix + JSON.stringify(res));
+            callback(null, res);
         }
     });
 };

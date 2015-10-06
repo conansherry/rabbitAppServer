@@ -34,7 +34,7 @@ function RabbitRedisClient(options) {
 
 
 /**
- * @brief function set & rpush & hmset. set and hmset can store the binary data, but rpush can't support this feature.
+ * @brief function set.
  *
  * @param key
  * @param value
@@ -85,7 +85,7 @@ RabbitRedisClient.prototype.get = function(key, callback) {
         },
         function(res, cb) {
             logger.debug(debugPrefix+"type = " + res);
-            if(res === "string") {
+            if(res == "string") {
                 logger.debug(debugPrefix+"get "+res);
                 self.client.get(key, function(err, res) {
                     if(err)
@@ -104,6 +104,31 @@ RabbitRedisClient.prototype.get = function(key, callback) {
     ],  function(err, res) {
         callback(err, res);
     });
+};
+
+/**
+ * @brief function hmset.
+ *
+ * @param key
+ * @param obj
+ * @param callback
+ *
+ * @return undefined
+ */
+RabbitRedisClient.prototype.hashset = function(key, obj, callback) {
+    this.client.hmset(key, obj, callback);
+};
+
+/**
+ * @brief function hgetall.
+ *
+ * @param key
+ * @param callback
+ *
+ * @return undefined
+ */
+RabbitRedisClient.prototype.hashget = function(key, callback) {
+    this.client.hgetall(key, callback);
 };
 
 /**

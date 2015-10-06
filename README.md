@@ -6,7 +6,7 @@ rabbitApp Server
 * mysql
 
 ## 配置
-* 测试环境`config/default.json`
+* 测试环境`config/test.json`
 * 线上环境`config/production.json`
 
 ## 启动
