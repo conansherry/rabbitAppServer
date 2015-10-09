@@ -1,21 +1,21 @@
 /**
- * @file register.js
- * @brief user register
+ * @file userData.js
+ * @brief modify pwd or modify info and so on.
  * @author conansherry
  * @version 1.3
- * @date 2015-10-05
+ * @date 2015-10-08
  */
 
 var crypto = require('crypto');
 var log4js = require("log4js");
-var logger = log4js.getLogger("register.js");
+var logger = log4js.getLogger("userData.js");
 
 var config = require("config");
 var storage = require("../storage/rabbitStorage.js");
 var storageConf = config.get("storage");
 var rabbitStorage = storage.createRabbitStorage(storageConf);
 
-exports.register = function(req, rootRes) {
+exports.updateInfo = function(req, rootRes) {
     var userinfo = {
         name : req.body.name,
         pwd : req.body.pwd,
@@ -31,22 +31,14 @@ exports.register = function(req, rootRes) {
         title : req.body.title,
         brief : req.body.brief
     };
-    rabbitStorage.getUser(userinfo.name, function(err, res) {
+    rabbitStorage.updateInfo(userinfo, function(err, res) {
         if(err) {
-            var sha1 = crypto.createHash('sha1');
-            sha1.update(userinfo.pwd);
-            userinfo.pwd = sha1.digest('hex');
-            logger.info(userinfo.name + " " + userinfo.pwd);
-            rabbitStorage.addUser(userinfo, function(err, res) {
-                if(err == null) {
-                    logger.info("register successfully");
-                    rootRes.send("REGISTER_OK");
-                }
-            });
+            logger.debug("update Info failed");
+            rootRes.send("FAILED");
         }
         else {
-            logger.info("user is exists");
-            rootRes.send("USER_EXISTS");
+            logger.debug("update Info Successfully. name=" + userinfo.name);
+            rootRes.send("OK");
         }
     });
 };

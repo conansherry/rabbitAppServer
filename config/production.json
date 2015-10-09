@@ -18,5 +18,8 @@
     },
     "server": {
         "listen": 8888
+    },
+    "logfile": {
+        "path": "/mnt/log/rabbitServer.log"
     }
 }

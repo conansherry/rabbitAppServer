@@ -23,12 +23,13 @@ var config = {
 /*
  * use global handler
  */
-var pool;
+var pool = null;
 function RabbitMysqlClient(options) {
     for (var i in options) {
         config[i] = options[i];
     }
-    pool = mysql.createPool(config);
+    if(pool == null)
+        pool = mysql.createPool(config);
     this.client = pool;
 }
 

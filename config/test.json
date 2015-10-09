@@ -18,5 +18,8 @@
     },
     "server": {
         "listen": 8889
+    },
+    "logfile": {
+        "path": "./SERVER.LOG"
     }
 }

@@ -11,7 +11,7 @@ var app         = express();
 var log4js      = require("log4js");
 var config      = require("config");
 log4js.loadAppender('file');
-log4js.addAppender(log4js.appenders.file("/mnt/log/rabbitServer.log"));
+log4js.addAppender(log4js.appenders.file(config.get("logfile.path")));
 log4js.setGlobalLogLevel("DEBUG");
 //log4js.setGlobalLogLevel("INFO");
 var logger      = log4js.getLogger("rabbitStorage.js");
@@ -26,9 +26,6 @@ var storageConf = config.get("storage");
  * has only one rabbitStorage handler
  */
 var rabbitStorage = storage.createRabbitStorage(storageConf);
-register.setRabbitStorageInstance(rabbitStorage);
-appdata.setRabbitStorageInstance(rabbitStorage);
-login.setRabbitStorageInstance(rabbitStorage);
 
 app.use(require('body-parser').urlencoded({extended : true}));
 
@@ -51,8 +48,13 @@ app.get("/getList", appdata.getList);
 
 app.get("/getNews", appdata.getNews);
 
-var server = app.listen(config.get('server.listen'), function() {
-    var host = server.address().address;
-    var port = server.address().port;
-    logger.info("Start RabbitServer. Listening at http://%s:%s", host, port);
+var server = app.listen(config.get('server.listen'), function(err, res) {
+    if(err) {
+        logger.error("start server failed.");
+    }
+    else {
+        var host = server.address().address;
+        var port = server.address().port;
+        logger.info("Start RabbitServer. Listening at http://%s:%s", host, port);
+    }
 });

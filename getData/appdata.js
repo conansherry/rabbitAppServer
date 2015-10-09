@@ -11,11 +11,10 @@ var logger = log4js.getLogger("appdata.js");
 var url    = require("url");
 var async  = require("async");
 
-var rabbitStorage;
-
-exports.setRabbitStorageInstance = function(storage) {
-    rabbitStorage = storage;
-};
+var config = require("config");
+var storage = require("../storage/rabbitStorage.js");
+var storageConf = config.get("storage");
+var rabbitStorage = storage.createRabbitStorage(storageConf);
 
 exports.getList = function(req, res) {
     var debugPrefix = "[getList]";

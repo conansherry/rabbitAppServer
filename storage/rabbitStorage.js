@@ -259,37 +259,37 @@ RabbitStorage.prototype.getImages = function(idList, callback) {
     async.parallel(tasks, callback);
 };
 
-RabbitStorage.prototype.getUser = function(uid, callback) {
+RabbitStorage.prototype.getUser = function(name, callback) {
     var debugPrefix = "[getUser]";
     var self = this;
-    self.mysql.get({"table" : "user", "column" : "uid", "where" : "uid=" + uid}, function(err, res) {
-        if(err || res.length ==0) {
+    self.mysql.get({"table" : "user", "column" : "name", "where" : "name='" + name + "'"}, function(err, res) {
+        if(err || res.length != 1) {
             logger.info(debugPrefix + "no user");
             callback(new Error("NO_USER"));
         }
         else {
-            callback(null, res[0].uid);
+            callback(null, res[0].name);
         }
     });
 };
 
-RabbitStorage.prototype.verifyUser = function(uid, callback) {
+RabbitStorage.prototype.verifyUser = function(name, callback) {
     var debugPrefix = "[verifyUser]";
     var self = this;
-    self.redis.hashget("CD:USERPWD:" + uid, function(err, res) {
+    self.redis.hashget("CD:NAMEPWD:" + name, function(err, res) {
         if(err || res == null) {
             if(err)
                 logger.error(debugPrefix + err.message);
             else
                 logger.debug(debugPrefix + "res == null");
-            self.mysql.get({"table" : "user", "column" : "uid, pwd", "where" : "uid=" + uid}, function(err, res) {
+            self.mysql.get({"table" : "user", "column" : "name, pwd", "where" : "name='" + name + "'"}, function(err, res) {
                 if(err || res.length !=1) {
                     logger.debug(debugPrefix + "no user");
                     callback(new Error("NO_USER"));
                 }
                 else {
                     logger.debug(debugPrefix + JSON.stringify(res));
-                    self.redis.hashset("CD:USERPWD:" + uid, res[0], function(err, res) {
+                    self.redis.hashset("CD:NAMEPWD:" + name, res[0], function(err, res) {
                         if(err)
                             logger.error(debugPrefix + err.message);
                     });
@@ -304,11 +304,25 @@ RabbitStorage.prototype.verifyUser = function(uid, callback) {
     });
 };
 
-RabbitStorage.prototype.getUserInfo = function(uid, pwd, callback) {
+RabbitStorage.prototype.getUserInfo = function(name, pwd, callback) {
     var debugPrefix = "[getUserInfo]";
     var self = this;
-    self.mysql.get({"table" : "user", "column" : "*", "where" : "uid=" + uid + " and pwd='" + pwd + "'"}, function(err, res) {
-        if(err || res.length ==0) {
+    self.mysql.get({"table" : "user", "column" : "*", "where" : "name='" + name + "' and pwd='" + pwd + "'"}, function(err, res) {
+        if(err || res.length != 1) {
+            logger.debug(debugPrefix + "no user or pwd error");
+            callback(new Error("NON_VALID"));
+        }
+        else {
+            callback(null, res);
+        }
+    });
+};
+
+RabbitStorage.prototype.innerVerifyUser = function(name, pwd, callback) {
+    var debugPrefix = "[innerVerifyUser]";
+    var self = this;
+    self.mysql.get({"table" : "user", "column" : "uid", "where" : "name='" + name + "' and pwd='" + pwd + "'"}, function(err, res) {
+        if(err || res.length != 1) {
             logger.debug(debugPrefix + "no user or pwd error");
             callback(new Error("NON_VALID"));
         }
@@ -328,6 +342,35 @@ RabbitStorage.prototype.addUser = function(userinfo, callback) {
         }
         else {
             callback(null, null);
+        }
+    });
+};
+
+RabbitStorage.prototype.updateInfo = function(userinfo, callback) {
+    var debugPrefix = "[updateUser]";
+    var self = this;
+    self.innerVerifyUser(userinfo.name, userinfo.pwd, function(err, res) {
+        if(err) {
+            logger.debug(debugPrefix + "update failed");
+            callback(err, null);
+        }
+        else {
+            self.addUser(userinfo, callback);
+        }
+    });
+};
+
+RabbitStorage.prototype.modifyPwd = function(name, oldPwd, newPwd, callback) {
+    var debugPrefix = "[modifyPwd]";
+    var self = this;
+    self.innerVerifyUser(name, oldPwd, function(err, res) {
+        if(err) {
+            logger.debug(debugPrefix + "failed");
+            callback(err, null);
+        }
+        else {
+            userinfo.pwd = newPwd;
+            self.addUser(userinfo, callback);
         }
     });
 };

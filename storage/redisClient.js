@@ -23,12 +23,13 @@ var config = {
 /*
  * redis+node work in single thread. use global redis handler;
  */
-var redisClient;
+var redisClient = null;
 function RabbitRedisClient(options) {
     for (var i in options) {
         config[i] = options[i];
     }
-    redisClient = redis.createClient(config.port, config.host, config.options);
+    if(redisClient == null)
+        redisClient = redis.createClient(config.port, config.host, config.options);
     this.client = redisClient;
 }
 
