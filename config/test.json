@@ -17,7 +17,8 @@
         }
     },
     "server": {
-        "listen": 8889
+        "http_listen": 8889,
+        "https_listen": 3001
     },
     "logfile": {
         "path": "./SERVER.LOG"

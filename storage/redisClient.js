@@ -28,8 +28,10 @@ function RabbitRedisClient(options) {
     for (var i in options) {
         config[i] = options[i];
     }
-    if(redisClient == null)
+    if(redisClient == null) {
+        logger.info("create new redis client");
         redisClient = redis.createClient(config.port, config.host, config.options);
+    }
     this.client = redisClient;
 }
 

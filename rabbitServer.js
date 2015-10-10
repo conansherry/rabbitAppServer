@@ -48,7 +48,7 @@ app.get("/getList", appdata.getList);
 
 app.get("/getNews", appdata.getNews);
 
-var server = app.listen(config.get('server.listen'), function(err, res) {
+var server = app.listen(config.get('server.http_listen'), function(err, res) {
     if(err) {
         logger.error("start server failed.");
     }
@@ -58,3 +58,15 @@ var server = app.listen(config.get('server.listen'), function(err, res) {
         logger.info("Start RabbitServer. Listening at http://%s:%s", host, port);
     }
 });
+
+var fs = require('fs');
+var https = require('https');
+var privateKey = fs.readFileSync('/mnt/rabbitServerHttpsKey/server-key.pem', 'utf8');
+var certificate = fs.readFileSync('/mnt/rabbitServerHttpsKey/server-cert.pem', 'utf8');
+var credentials = {key : privateKey, cert : certificate};
+var appHttps    = express();
+var httpsServer = https.createServer(credentials, appHttps);
+appHttps.get("/", function(req, res) {
+    res.send("菟籽琳认证服务器. Power by conansherry. Email:conansherry.hy@gmail.com");
+});
+httpsServer.listen(config.get('server.https_listen'));

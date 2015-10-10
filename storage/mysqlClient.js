@@ -28,8 +28,10 @@ function RabbitMysqlClient(options) {
     for (var i in options) {
         config[i] = options[i];
     }
-    if(pool == null)
+    if(pool == null) {
+        logger.info("create new mysql client");
         pool = mysql.createPool(config);
+    }
     this.client = pool;
 }
 
