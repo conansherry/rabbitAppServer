@@ -7,9 +7,7 @@
  */
 
 var express     = require("express");
-var app         = express();
 var log4js      = require("log4js");
-var config      = require("config");
 log4js.loadAppender('file');
 log4js.addAppender(log4js.appenders.file(config.get("logfile.path")));
 log4js.setGlobalLogLevel("DEBUG");
@@ -20,12 +18,17 @@ var register    = require("./passport/register.js");
 var appdata     = require("./getData/appdata.js");
 var login       = require("./passport/login.js");
 
+var config      = require("config");
 var storageConf = config.get("storage");
 
 /*
  * has only one rabbitStorage handler
  */
 var rabbitStorage = storage.createRabbitStorage(storageConf);
+
+/*start http server*/
+
+var app = express();
 
 app.use(require('body-parser').urlencoded({extended : true}));
 
@@ -59,6 +62,10 @@ var server = app.listen(config.get('server.http_listen'), function(err, res) {
     }
 });
 
+/*end http server*/
+
+/*start https server*/
+
 var fs = require('fs');
 var https = require('https');
 var privateKey = fs.readFileSync('/mnt/rabbitServerHttpsKey/server-key.pem', 'utf8');
@@ -66,7 +73,15 @@ var certificate = fs.readFileSync('/mnt/rabbitServerHttpsKey/server-cert.pem', '
 var credentials = {key : privateKey, cert : certificate};
 var appHttps    = express();
 var httpsServer = https.createServer(credentials, appHttps);
+
 appHttps.get("/", function(req, res) {
     res.send("菟籽琳认证服务器. Power by conansherry. Email:conansherry.hy@gmail.com");
 });
+
+appHttps.post("/register", register.register);
+
+appHttps.post("/login", login.login);
+
 httpsServer.listen(config.get('server.https_listen'));
+
+/*end https server*/
