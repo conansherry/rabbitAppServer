@@ -12,6 +12,6 @@ rabbitApp Server
 ## 启动
 ```bash
 export NODE_ENV=production # 由config目录下的json文件名决定
-forever start rabbitServer.js
-forever start dataSpider/spider.js
+pm2 start rabbitServer.js
+pm2 start dataSpider/spider.js
 ```

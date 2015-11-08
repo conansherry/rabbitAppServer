@@ -8,6 +8,7 @@
 
 var express     = require("express");
 var log4js      = require("log4js");
+var config      = require("config");
 log4js.loadAppender('file');
 log4js.addAppender(log4js.appenders.file(config.get("logfile.path")));
 log4js.setGlobalLogLevel("DEBUG");
@@ -18,7 +19,6 @@ var register    = require("./passport/register.js");
 var appdata     = require("./getData/appdata.js");
 var login       = require("./passport/login.js");
 
-var config      = require("config");
 var storageConf = config.get("storage");
 
 /*
